@@ -1,6 +1,4 @@
 use std::ops::{Index, IndexMut, Add, Sub, Mul, Div, Neg};
-use std::sync::Arc;
-use std::thread;
 use rayon::prelude::*;
 use crate::error::{MatrixError, MatrixResult};
 

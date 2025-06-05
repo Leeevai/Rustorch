@@ -2,7 +2,7 @@ use std::time::Instant;
 use std::fmt;
 // Fixed import - assuming Matrix is from a crate called "matrix" or similar
 // Replace "matrix" with your actual crate name
-use matrix::{Matrix, MatrixError, MatrixResult};
+use matrix::{Matrix, MatrixResult};
 
 // Helper function to format duration
 fn format_duration(duration: std::time::Duration) -> String {
