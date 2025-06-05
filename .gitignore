@@ -1,3 +1,4 @@
 .vscode
 /rustorch/target/
+/target/
 .target

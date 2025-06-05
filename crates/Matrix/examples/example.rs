@@ -1,10 +1,9 @@
 use std::time::Instant;
 use std::fmt;
-// Fixed import - assuming Matrix is from a crate called "matrix" or similar
-// Replace "matrix" with your actual crate name
+
 use matrix::{Matrix, MatrixResult};
 
-// Helper function to format duration
+
 fn format_duration(duration: std::time::Duration) -> String {
     let nanos = duration.as_nanos();
     if nanos < 1_000 {
@@ -18,8 +17,7 @@ fn format_duration(duration: std::time::Duration) -> String {
     }
 }
 
-// Helper function to print matrix (only for small matrices)
-// Added trait bounds for T
+
 fn print_matrix<T>(matrix: &Matrix<T>, name: &str) -> MatrixResult<()> 
 where 
     T: fmt::Display + Copy + Default + Send + Sync + std::str::FromStr,
@@ -41,7 +39,6 @@ where
     Ok(())
 }
 
-// Performance comparison function
 fn benchmark_operation<F, R>(name: &str, operation: F) -> (R, std::time::Duration)
 where 
     F: FnOnce() -> R,
@@ -53,7 +50,6 @@ where
     (result, duration)
 }
 
-// Compare two operations and show speedup/slowdown
 fn compare_operations<F1, F2, R>(
     name: &str,
     sequential_op: F1,
