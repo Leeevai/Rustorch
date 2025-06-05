@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-Matrix = { path = "crates/Matrix" }
+matrix = { path = "crates/Matrix" }
 Database = { path = "crates/Database" }
 NeuralNetworks = { path = "crates/NeuralNetworks" }
 
