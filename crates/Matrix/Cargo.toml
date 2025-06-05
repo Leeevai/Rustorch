@@ -1,11 +1,11 @@
 [package]
 name = "Matrix"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
-rand = "0.8.5"
-num-traits = "0.2"
-thiserror = "1.0"
-num_cpus = "1.0"
-rayon = "1.10.0"
+rayon = "1.8"
+
+[dev-dependencies]
+criterion = "0.6"
+
