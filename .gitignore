@@ -2,5 +2,9 @@
 /Rustorch/target/
 /target/
 target/
+target/debug
+*.rlib
+*.zip
+*.exe
 .github
 .gitignore
