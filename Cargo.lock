@@ -519,7 +519,6 @@ name = "rustorch"
 version = "0.1.0"
 dependencies = [
  "Database",
- "matrix",
  "neural_network",
  "tensor",
 ]
