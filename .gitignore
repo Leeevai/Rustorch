@@ -1,4 +1,9 @@
 .vscode
-/rustorch/target/
+/Rustorch/target/
 /target/
 target/
+target/debug
+*.rlib
+*.zip
+*.exe
+

@@ -1,153 +1,150 @@
+use std::ops::{Add, Sub};
+use std::thread;
 use crate::tensor::Tensor;
-use crate::error::TensorResult;
-use crate::simd::SimdProcessor;
-use rayon::prelude::*;
-use std::sync::Arc;
+use crate::error::{TensorError, TensorResult};
+use crate::simd::{SIMDOps, RawPointerWrapper};
+use crate::ExecutionMode;
 
-pub enum ComputeMode {
-    Single,
-    MultiThread,
-    SimdMultiThread,
+impl Add for &Tensor {
+    type Output = TensorResult<Tensor>;
+
+    fn add(self, rhs: &Tensor) -> TensorResult<Tensor> {
+        self.check_same_shape(rhs)?;
+        let data = self.data.iter().zip(rhs.data.iter()).map(|(a, b)| a + b).collect();
+        Tensor::new(data, &self.shape)
+    }
 }
 
-pub struct TensorOps {
-    simd_processor: Arc<SimdProcessor>,
-    chunk_size: usize,
+impl Sub for &Tensor {
+    type Output = TensorResult<Tensor>;
+
+    fn sub(self, rhs: &Tensor) -> TensorResult<Tensor> {
+        self.check_same_shape(rhs)?;
+        let data = self.data.iter().zip(rhs.data.iter()).map(|(a, b)| a - b).collect();
+        Tensor::new(data, &self.shape)
+    }
 }
 
-impl TensorOps {
-    pub fn new() -> Self {
-        let chunk_size = std::cmp::max(1000, num_cpus::get() * 100);
-        TensorOps {
-            simd_processor: Arc::new(SimdProcessor::new()),
-            chunk_size,
+impl Sub for Tensor {
+    type Output = TensorResult<Tensor>;
+
+    fn sub(self, rhs: Tensor) -> TensorResult<Tensor> {
+        self.check_same_shape(&rhs)?;
+        let data = self.data.iter().zip(rhs.data.iter()).map(|(a, b)| a - b).collect();
+        Tensor::new(data, &self.shape)
+    }
+}
+
+impl Tensor {
+    pub fn multiply(&self, other: &Tensor, mode: ExecutionMode) -> TensorResult<Tensor> {
+        match mode {
+            ExecutionMode::Sequential => self.multiply_sequential(other),
+            ExecutionMode::Parallel => self.multiply_parallel(other, 6),
+            ExecutionMode::SIMD => self.multiply_simd(other),
+            ExecutionMode::ParallelSIMD => self.multiply_simd_parallel(other, 6),
         }
     }
 
-    pub fn add(&self, a: &Tensor, b: &Tensor, mode: ComputeMode) -> TensorResult<Tensor> {
-        a.check_same_shape(b)?;
-        let mut result = Tensor::zeros(&a.shape);
+    fn multiply_sequential(&self, other: &Tensor) -> TensorResult<Tensor> {
+        if !self.is_matrix() || !other.is_matrix() {
+            return Err(TensorError::DimensionError(
+                "Sequential multiplication only supports 2D matrices".to_string()
+            ));
+        }
 
-        match mode {
-            ComputeMode::Single => {
-                for i in 0..a.data.len() {
-                    result.data[i] = a.data[i] + b.data[i];
+        if self.shape()[1] != other.shape()[0] {
+            return Err(TensorError::ShapeMismatch(format!(
+                "Matrix dimensions don't match: {}x{} * {}x{}",
+                self.shape()[0], self.shape()[1], other.shape()[0], other.shape()[1]
+            )));
+        }
+
+        let mut result = vec![0.0; self.rows() * other.cols()];
+
+        for i in 0..self.rows() {
+            for j in 0..other.cols() {
+                let mut sum = 0.0;
+                for k in 0..self.cols() {
+                    sum += self.data[i * self.cols() + k] * other.data[k * other.cols() + j];
                 }
-            }
-            ComputeMode::MultiThread => {
-                result.data.par_iter_mut()
-                    .enumerate()
-                    .for_each(|(i, r)| *r = a.data[i] + b.data[i]);
-            }
-            ComputeMode::SimdMultiThread => {
-                let processor = Arc::clone(&self.simd_processor);
-                result.data.par_chunks_mut(self.chunk_size)
-                    .enumerate()
-                    .for_each(|(chunk_idx, chunk)| {
-                        let start = chunk_idx * self.chunk_size;
-                        let end = std::cmp::min(start + chunk.len(), a.data.len());
-                        let len = end - start;
-                        
-                        processor.add_slice(
-                            &a.data[start..start + len],
-                            &b.data[start..start + len],
-                            &mut chunk[..len]
-                        );
-                    });
+                result[i * other.cols() + j] = sum;
             }
         }
-
-        Ok(result)
+        Tensor::new(result, &[self.rows(), other.cols()])
     }
 
-    pub fn multiply(&self, a: &Tensor, b: &Tensor, mode: ComputeMode) -> TensorResult<Tensor> {
-        a.check_same_shape(b)?;
-        let mut result = Tensor::zeros(&a.shape);
+    fn multiply_parallel(&self, other: &Tensor, nb_threads: usize) -> TensorResult<Tensor> {
+        if !self.is_matrix() || !other.is_matrix() {
+            return Err(TensorError::DimensionError(
+                "Parallel multiplication only supports 2D matrices".to_string()
+            ));
+        }
 
-        match mode {
-            ComputeMode::Single => {
-                for i in 0..a.data.len() {
-                    result.data[i] = a.data[i] * b.data[i];
+        if self.shape()[1] != other.shape()[0] {
+            return Err(TensorError::ShapeMismatch(format!(
+                "Matrix dimensions don't match: {}x{} * {}x{}",
+                self.shape()[0], self.shape()[1], other.shape()[0], other.shape()[1]
+            )));
+        }
+
+        let mut result = vec![0.0; self.rows() * other.cols()];
+        let chunk_size = self.rows() / nb_threads;
+        let mut handles = vec![];
+
+        for t in 0..nb_threads {
+            let start = t * chunk_size;
+            let end = if t == nb_threads - 1 { self.rows() } else { start + chunk_size };
+
+            let raw_pointer = RawPointerWrapper { raw: result.as_mut_ptr() };
+            let a = self.data.clone();
+            let b = other.data.clone();
+            let a_cols = self.cols();
+            let b_cols = other.cols();
+
+            let handle = thread::spawn(move || {
+                for i in start..end {
+                    for j in 0..b_cols {
+                        let mut sum = 0.0;
+                        for k in 0..a_cols {
+                            sum += a[i * a_cols + k] * b[k * b_cols + j];
+                        }
+                        unsafe {
+                            raw_pointer.modify_at(i * b_cols + j, sum);
+                        }
+                    }
                 }
-            }
-            ComputeMode::MultiThread => {
-                result.data.par_iter_mut()
-                    .enumerate()
-                    .for_each(|(i, r)| *r = a.data[i] * b.data[i]);
-            }
-            ComputeMode::SimdMultiThread => {
-                let processor = Arc::clone(&self.simd_processor);
-                result.data.par_chunks_mut(self.chunk_size)
-                    .enumerate()
-                    .for_each(|(chunk_idx, chunk)| {
-                        let start = chunk_idx * self.chunk_size;
-                        let end = std::cmp::min(start + chunk.len(), a.data.len());
-                        let len = end - start;
-                        
-                        processor.mul_slice(
-                            &a.data[start..start + len],
-                            &b.data[start..start + len],
-                            &mut chunk[..len]
-                        );
-                    });
-            }
+            });
+            handles.push(handle);
         }
 
-        Ok(result)
-    }
-
-    pub fn scalar_multiply(&self, tensor: &Tensor, scalar: f32, mode: ComputeMode) -> Tensor {
-        let mut result = Tensor::zeros(&tensor.shape);
-
-        match mode {
-            ComputeMode::Single => {
-                for i in 0..tensor.data.len() {
-                    result.data[i] = tensor.data[i] * scalar;
-                }
-            }
-            ComputeMode::MultiThread => {
-                result.data.par_iter_mut()
-                    .enumerate()
-                    .for_each(|(i, r)| *r = tensor.data[i] * scalar);
-            }
-            ComputeMode::SimdMultiThread => {
-                let scalar_vec = vec![scalar; tensor.data.len()];
-                let processor = Arc::clone(&self.simd_processor);
-                result.data.par_chunks_mut(self.chunk_size)
-                    .enumerate()
-                    .for_each(|(chunk_idx, chunk)| {
-                        let start = chunk_idx * self.chunk_size;
-                        let end = std::cmp::min(start + chunk.len(), tensor.data.len());
-                        let len = end - start;
-                        
-                        processor.mul_slice(
-                            &tensor.data[start..start + len],
-                            &scalar_vec[start..start + len],
-                            &mut chunk[..len]
-                        );
-                    });
-            }
+        for handle in handles {
+            handle.join().unwrap();
         }
 
-        result
+        Tensor::new(result, &[self.rows(), other.cols()])
     }
 
-    pub fn sum(&self, tensor: &Tensor, mode: ComputeMode) -> f32 {
-        match mode {
-            ComputeMode::Single => {
-                tensor.data.iter().sum()
-            }
-            ComputeMode::MultiThread | ComputeMode::SimdMultiThread => {
-                tensor.data.par_iter().sum()
-            }
+    fn multiply_simd(&self, other: &Tensor) -> TensorResult<Tensor> {
+        if other.is_column_vector() && self.is_matrix() {
+            SIMDOps::matrix_vector_multiply(self, other)
+        } else if self.is_matrix() && other.is_matrix() {
+            SIMDOps::matrix_multiply(self, other)
+        } else {
+            Err(TensorError::DimensionError(
+                "SIMD multiplication only supports matrix-vector or matrix-matrix operations".to_string()
+            ))
         }
     }
 
-    pub fn get_simd_info(&self) -> (usize, bool, bool) {
-        (
-            self.simd_processor.simd_width,
-            self.simd_processor.supports_avx2,
-            self.simd_processor.supports_avx512,
-        )
+    fn multiply_simd_parallel(&self, other: &Tensor, nb_threads: usize) -> TensorResult<Tensor> {
+        if other.is_column_vector() && self.is_matrix() {
+            SIMDOps::matrix_vector_multiply_parallel(self, other, nb_threads)
+        } else if self.is_matrix() && other.is_matrix() {
+            SIMDOps::matrix_multiply_parallel(self, other, nb_threads)
+        } else {
+            Err(TensorError::DimensionError(
+                "SIMD parallel multiplication only supports matrix-vector or matrix-matrix operations".to_string()
+            ))
+        }
     }
 }

@@ -181,6 +181,20 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
 name = "getrandom"
+<<<<<<< HEAD
+=======
+version = "0.2.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "335ff9f135e4384c8150d6f27c6daed433577f86b4750418338c01a1a2528592"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "wasi 0.11.1+wasi-snapshot-preview1",
+]
+
+[[package]]
+name = "getrandom"
+>>>>>>> 3-tensor-crate-v2
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "26145e563e54f2cadc477553f1ec5ee650b00862f0a58bcd12cbdc5f0ea2d2f4"
@@ -188,7 +202,11 @@ dependencies = [
  "cfg-if",
  "libc",
  "r-efi",
+<<<<<<< HEAD
  "wasi",
+=======
+ "wasi 0.14.2+wasi-0.2.4",
+>>>>>>> 3-tensor-crate-v2
 ]
 
 [[package]]
@@ -202,6 +220,15 @@ dependencies = [
 ]
 
 [[package]]
+<<<<<<< HEAD
+=======
+name = "hermit-abi"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
+
+[[package]]
+>>>>>>> 3-tensor-crate-v2
 name = "itertools"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -272,7 +299,11 @@ name = "neural_network"
 version = "0.1.0"
 dependencies = [
  "matrix",
+<<<<<<< HEAD
  "rand",
+=======
+ "rand 0.9.1",
+>>>>>>> 3-tensor-crate-v2
  "rand_distr",
  "rayon",
 ]
@@ -288,6 +319,19 @@ dependencies = [
 ]
 
 [[package]]
+<<<<<<< HEAD
+=======
+name = "num_cpus"
+version = "1.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "91df4bbde75afed763b708b7eee1e8e7651e02d97f6d5dd763e89367e957b23b"
+dependencies = [
+ "hermit-abi",
+ "libc",
+]
+
+[[package]]
+>>>>>>> 3-tensor-crate-v2
 name = "once_cell"
 version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -362,12 +406,41 @@ checksum = "74765f6d916ee2faa39bc8e68e4f3ed8949b48cccdac59983d287a7cb71ce9c5"
 
 [[package]]
 name = "rand"
+<<<<<<< HEAD
+=======
+version = "0.8.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34af8d1a0e25924bc5b7c43c079c942339d8f0a8b57c39049bef581b46327404"
+dependencies = [
+ "libc",
+ "rand_chacha 0.3.1",
+ "rand_core 0.6.4",
+]
+
+[[package]]
+name = "rand"
+>>>>>>> 3-tensor-crate-v2
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9fbfd9d094a40bf3ae768db9361049ace4c0e04a4fd6b359518bd7b73a73dd97"
 dependencies = [
+<<<<<<< HEAD
  "rand_chacha",
  "rand_core",
+=======
+ "rand_chacha 0.9.0",
+ "rand_core 0.9.3",
+]
+
+[[package]]
+name = "rand_chacha"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6c10a63a0fa32252be49d21e7709d4d4baf8d231c2dbce1eaa8141b9b127d88"
+dependencies = [
+ "ppv-lite86",
+ "rand_core 0.6.4",
+>>>>>>> 3-tensor-crate-v2
 ]
 
 [[package]]
@@ -377,7 +450,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d3022b5f1df60f26e1ffddd6c66e8aa15de382ae63b3a0c1bfc0e4d3e3f325cb"
 dependencies = [
  "ppv-lite86",
+<<<<<<< HEAD
  "rand_core",
+=======
+ "rand_core 0.9.3",
+]
+
+[[package]]
+name = "rand_core"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
+dependencies = [
+ "getrandom 0.2.16",
+>>>>>>> 3-tensor-crate-v2
 ]
 
 [[package]]
@@ -386,7 +472,11 @@ version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "99d9a13982dcf210057a8a78572b2217b667c3beacbf3a0d8b454f6f82837d38"
 dependencies = [
+<<<<<<< HEAD
  "getrandom",
+=======
+ "getrandom 0.3.3",
+>>>>>>> 3-tensor-crate-v2
 ]
 
 [[package]]
@@ -396,7 +486,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a8615d50dcf34fa31f7ab52692afec947c4dd0ab803cc87cb3b0b4570ff7463"
 dependencies = [
  "num-traits",
+<<<<<<< HEAD
  "rand",
+=======
+ "rand 0.9.1",
+]
+
+[[package]]
+name = "rand_pcg"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "59cad018caf63deb318e5a4586d99a24424a364f40f1e5778c29aca23f4fc73e"
+dependencies = [
+ "rand_core 0.6.4",
+>>>>>>> 3-tensor-crate-v2
 ]
 
 [[package]]
@@ -455,6 +558,10 @@ dependencies = [
  "Database",
  "matrix",
  "neural_network",
+<<<<<<< HEAD
+=======
+ "tensor",
+>>>>>>> 3-tensor-crate-v2
 ]
 
 [[package]]
@@ -522,6 +629,19 @@ dependencies = [
 ]
 
 [[package]]
+<<<<<<< HEAD
+=======
+name = "tensor"
+version = "0.1.0"
+dependencies = [
+ "num_cpus",
+ "rand 0.8.5",
+ "rand_pcg",
+ "rayon",
+]
+
+[[package]]
+>>>>>>> 3-tensor-crate-v2
 name = "tinytemplate"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -549,6 +669,15 @@ dependencies = [
 
 [[package]]
 name = "wasi"
+<<<<<<< HEAD
+=======
+version = "0.11.1+wasi-snapshot-preview1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b"
+
+[[package]]
+name = "wasi"
+>>>>>>> 3-tensor-crate-v2
 version = "0.14.2+wasi-0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9683f9a5a998d873c0d21fcbe3c083009670149a8fab228644b8bd36b2c48cb3"
