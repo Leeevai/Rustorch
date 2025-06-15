@@ -6,5 +6,4 @@ target/debug
 *.rlib
 *.zip
 *.exe
-.github
-.gitignore
+
