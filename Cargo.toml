@@ -1,0 +1,16 @@
+[package]
+name = "rustorch"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+matrix = { path = "crates/matrix" }
+Database = { path = "crates/database" }
+neural_network = { path = "crates/neural-network" }
+
+[workspace]
+members = [
+    "crates/matrix",
+    "crates/database",
+    "crates/neural-network"
+]
