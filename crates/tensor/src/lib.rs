@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-pub mod tensor;
-pub mod error;
-pub mod ops;
-pub mod simd;
-
-pub use tensor::Tensor;
-pub use error::TensorError;
-=======
 pub mod error;
 pub mod tensor;
 pub mod simd;
@@ -34,4 +25,3 @@ impl fmt::Display for ExecutionMode {
         write!(f, "{}", mode_str)
     }
 }
->>>>>>> 3-tensor-crate-v2
