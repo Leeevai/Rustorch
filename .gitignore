@@ -1,0 +1,6 @@
+.vscode
+/Rustorch/target/
+/target/
+target/
+.github
+.gitignore
